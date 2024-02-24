@@ -4,6 +4,8 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+// 🔽 追加
+use Illuminate\Auth\AuthenticationException;
 
 class Handler extends ExceptionHandler
 {
@@ -26,5 +28,20 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    // 🔽 追加
+    public function render($request, Throwable $exception)
+    {
+        // 未認証の場合で．．．
+        if ($exception instanceof AuthenticationException) {
+            // APIリクエストの場合はJSONレスポンスを返す
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+        }
+
+        // Webの場合は親クラスのrender()を呼び出す
+        return parent::render($request, $exception);
     }
 }
